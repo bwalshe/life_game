@@ -20,9 +20,8 @@ pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem.window("rust-sdl2 demo: Video", SCREEN_WIDTH, SCREEN_HEIGHT)
+    let window = video_subsystem.window("Conway's Game of Life", SCREEN_WIDTH, SCREEN_HEIGHT)
         .position_centered()
-        .opengl()
         .build()
         .unwrap();
 
