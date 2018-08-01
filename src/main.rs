@@ -2,14 +2,9 @@ extern crate sdl2;
 extern crate rand;
 extern crate life_game;
 
-//use life_game::CellularAutomata;
 use life_game::AutomataRenderer;
 use life_game::life::LifeBoard;
 use life_game::life::LifeCellState;
-
-
-
-
 
 const SCREEN_WIDTH: u32 = 600;
 const SCREEN_HEIGHT: u32 = 600;
@@ -40,4 +35,3 @@ fn life_color(cell: LifeCellState) -> (u8, u8, u8) {
         LifeCellState::Dead => (255, 255, 255)
     }
 }
-

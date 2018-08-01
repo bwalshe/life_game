@@ -105,10 +105,12 @@ impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
                     Event::Quit {..} 
                     | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                         break 'running
-                    }/*,
+                    },
                     Event::KeyDown { keycode: Some(Keycode::Return), ..} => {
-                        board.replace(LifeBoard::new_random(BOARD_SIZE,BOARD_SIZE,P_LIFE).unwrap());
-                    }*/,
+                        //TODO: Spawn a new automata here. Will probably require 
+                        //passing a function in the constructor which constructs 
+                        //new automata
+                    },
                     _ => {}
                 }
             }
