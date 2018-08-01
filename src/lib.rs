@@ -39,7 +39,6 @@ pub struct AutomataRenderer<'a, T:CellularAutomata<U>, U>{
 }
 
 
-
 impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
     pub fn new(
         sdl_context: &sdl2::Sdl,
@@ -47,29 +46,29 @@ impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
         texture_creator: &'a sdl2::render::TextureCreator<sdl2::video::WindowContext>,
         board: T,
         fps:u64,
-        cell_to_rgb: fn(U) -> (u8, u8, u8)) -> /*AutomataRenderer<'a, T, U>*/ Self {
+        cell_to_rgb: fn(U) -> (u8, u8, u8)) ->  Result<Self, Box<std::error::Error>> {
     
         
 
         let texture = texture_creator.create_texture_streaming(
-            PixelFormatEnum::RGB24, board.get_width() as u32, board.get_height() as u32).unwrap();
+            PixelFormatEnum::RGB24, board.get_width() as u32, board.get_height() as u32)?;
     
         let texture_info = texture.query();
         println!("{:?}", texture_info);
 
         let frame_duration =  std::time::Duration::from_millis(1000/fps);
-        let event_pump = sdl_context.event_pump().unwrap();
+        let event_pump = sdl_context.event_pump()?;
 
-        AutomataRenderer{board:board, 
+        Ok(AutomataRenderer{board:board, 
                          canvas: canvas, 
                          texture: texture, 
                          frame_duration: frame_duration, 
                          cell_to_rgb: cell_to_rgb, 
-                         event_pump: event_pump}
+                         event_pump: event_pump})
     }
 
 
-    pub fn run(&mut self) -> (i32, std::time::Duration)  {
+    pub fn run(&mut self) -> Result<(i32, std::time::Duration), Box<std::error::Error>>  {
         let mut frames = 0;
         let game_started = std::time::Instant::now();
         
@@ -93,9 +92,9 @@ impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
                             
                         }
                     }
-                }).unwrap();
+                })?;
             } 
-            self.canvas.copy(&self.texture, None, None).unwrap(); 
+            self.canvas.copy(&self.texture, None, None)?; 
             self.canvas.present();
             frames+=1;
             self.board.step();
@@ -118,7 +117,7 @@ impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
             let expired_time = std::time::Instant::now() - frame_started;    
             std::thread::sleep(self.frame_duration - std::cmp::min(self.frame_duration, expired_time));
         }
-        (frames, std::time::Instant::now() - game_started)
+        Ok((frames, std::time::Instant::now() - game_started))
     }
 }
 

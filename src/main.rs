@@ -23,8 +23,8 @@ pub fn main() {
     let texture_creator = canvas.texture_creator();
 
     let board = LifeBoard::new_random(BOARD_SIZE, BOARD_SIZE, P_LIFE).unwrap();
-    let mut renderer = AutomataRenderer::new(&sdl_context, &mut canvas, &texture_creator, board, FRAMES_PER_SECOND, life_color);
-    let (frames, duration) = renderer.run();
+    let mut renderer = AutomataRenderer::new(&sdl_context, &mut canvas, &texture_creator, board, FRAMES_PER_SECOND, life_color).unwrap();
+    let (frames, duration) = renderer.run().unwrap();
     println!("Ran {} frames in {}.{} seconds", frames, duration.as_secs(), duration.subsec_millis());
     println!("That's {} frames per second.", frames as f32 / (duration.as_secs() as f32 + duration.subsec_millis() as f32 / 1000.0))
 }
