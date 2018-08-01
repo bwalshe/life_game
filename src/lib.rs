@@ -25,28 +25,29 @@ pub trait CellularAutomata<T>{
 ///
 /// An object which will render a CelularAutomata to an SDL2 surface
 /// In addtition to the automata and the SDL2 details, it needs
-/// a function which converts the state of a cell to an rgb triple
+/// a function `f(T)->(u8, u8, u8) which converts the state of a cell to an rgb
+/// triple
 /// 
 /// Once the renderer has been constructed, use `run()` to get it to 
 /// loop infinately calling `board.step()` and displaying the result.
-pub struct AutomataRenderer<'a, T:CellularAutomata<U>, U>{
-    board: T,
+pub struct AutomataRenderer<'a, T, U:CellularAutomata<T>>{
+    board: U,
     canvas: &'a mut sdl2::render::Canvas<sdl2::video::Window>,
     texture: sdl2::render::Texture<'a>,
     frame_duration: std::time::Duration,
-    cell_to_rgb: fn(U) -> (u8, u8, u8),
+    cell_to_rgb: fn(T) -> (u8, u8, u8),
     event_pump: sdl2::EventPump
 }
 
 
-impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
+impl <'a, T, U:CellularAutomata<T>> AutomataRenderer<'a, T, U>{
     pub fn new(
         sdl_context: &sdl2::Sdl,
         canvas: &'a mut sdl2::render::Canvas<sdl2::video::Window>,
         texture_creator: &'a sdl2::render::TextureCreator<sdl2::video::WindowContext>,
-        board: T,
+        board: U,
         fps:u64,
-        cell_to_rgb: fn(U) -> (u8, u8, u8)) ->  Result<Self, Box<std::error::Error>> {
+        cell_to_rgb: fn(T) -> (u8, u8, u8)) ->  Result<Self, Box<std::error::Error>> {
     
         
 
@@ -117,6 +118,7 @@ impl <'a, T:CellularAutomata<U>, U> AutomataRenderer<'a, T, U>{
             let expired_time = std::time::Instant::now() - frame_started;    
             std::thread::sleep(self.frame_duration - std::cmp::min(self.frame_duration, expired_time));
         }
+        
         Ok((frames, std::time::Instant::now() - game_started))
     }
 }

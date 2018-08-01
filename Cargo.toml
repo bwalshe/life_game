@@ -1,7 +1,7 @@
 [package]
 name = "life_game"
 version = "0.1.0"
-authors = ["walsh"]
+authors = ["Brian Walshe"]
 
 [dependencies]
 sdl2 = { version = "0.31.0", features = ["bundled", "static-link"] }
