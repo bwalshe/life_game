@@ -6,6 +6,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
 
 pub mod life;
+pub mod brain;
 
 ///
 /// Generic 2D grid Celular Automata where each state is in a state of
@@ -20,6 +21,20 @@ pub trait CellularAutomata<T>{
     fn get_cell(&self,  i:i32, j:i32) -> T;
     fn get_width(&self) -> usize;
     fn get_height(&self) -> usize;
+    fn invalid_coords(&self, i:i32, j:i32) -> bool {
+        i<0 || j<0 || i as usize >=self. get_width() || j as usize >= self.get_height()
+    }
+
+    fn get_neighbours(&self, i:i32, j:i32) -> Vec<T> {
+        let neighbours = [(i-1,j-1), (i,j-1), (i+1, j-1),
+                          (i-1,j), (i+1,j),
+                          (i-1, j+1), (i,j+1), (i+1, j+1)];
+        
+        neighbours.iter().map(|(i,j)| self.get_cell(*i,*j)).collect()
+    }
+
+    
+
 }
 
 ///

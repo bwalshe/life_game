@@ -6,7 +6,7 @@ use super::CellularAutomata;
 /// A game-board for the game of life
 /// 
 pub struct LifeBoard{
-    cells: Vec<u8>,
+    cells: Vec<LifeCellState>,
     width: usize,
     height: usize
 }
@@ -14,6 +14,7 @@ pub struct LifeBoard{
 ///
 /// Cells in the game of life can have one of two states: Alive or Dead.
 /// 
+#[derive(Clone)]
 pub enum LifeCellState{
     Alive,
     Dead
@@ -27,10 +28,10 @@ impl LifeBoard {
             return Err("p_live must be between 0 and 1".into());
         }
         let ncells = width * height;
-        let mut cells: Vec<u8> = Vec::with_capacity(ncells);
+        let mut cells: Vec<LifeCellState> = Vec::with_capacity(ncells);
         let mut rng = thread_rng();
         for _ in 0..ncells{
-            cells.push(if rng.gen_range(0.0f32, 1.0f32) < p_live {1} else {0})
+            cells.push(if rng.gen_range(0.0f32, 1.0f32) < p_live {LifeCellState::Alive} else {LifeCellState::Dead})
         }
         Ok(LifeBoard{cells, width, height})
     }
@@ -38,7 +39,7 @@ impl LifeBoard {
     /// Construct a new game board from an existing array
     /// * `width` must be non-zero
     /// * The length of `vals` must be a whole multiple of `width`
-    pub fn from_array(vals: &[u8], width: usize) -> Result<LifeBoard,String>{
+    pub fn from_array(vals: &[LifeCellState], width: usize) -> Result<LifeBoard,String>{
         if width == 0{
             return Err("With must be non-zero".into())
         }
@@ -46,30 +47,16 @@ impl LifeBoard {
             return Err("Array length must be an integer multiple of width".into())
         }
         let height = vals.len() / width;
-        let cells = vals.to_vec();
+        let mut cells: Vec<LifeCellState> = Vec::with_capacity(vals.len());
+        for cell in vals {
+            cells.push(cell.clone());
+        }
         Ok(LifeBoard{cells, width, height})
     }
-
-    fn set_cell(&mut self, i:i32, j:i32, value: LifeCellState){
-        if !self.invalid_coords(i, j){
-            self.cells[i as usize + j as usize *self.width] = match value {
-                LifeCellState::Alive => 1,
-                LifeCellState::Dead => 0
-            }
-        }
-    }
-
-    fn invalid_coords(&self, i:i32, j:i32) -> bool {
-        i<0 || j<0 || i as usize >=self.width || j as usize >= self.height
-    }
-
+    
     fn count_neighbours(&self, i:i32, j:i32) -> u8 {
-        let neighbours = [(i-1,j-1), (i,j-1), (i+1, j-1),
-                          (i-1,j), (i+1,j),
-                          (i-1, j+1), (i,j+1), (i+1, j+1)];
-        
-        neighbours.iter()
-            .filter(|(x,y)| match self.get_cell(*x,*y) { 
+        self.get_neighbours(i, j).iter()
+            .filter(|cell| match cell { 
                  LifeCellState::Alive => true,
                  LifeCellState::Dead => false
             })
@@ -93,27 +80,26 @@ impl CellularAutomata<LifeCellState> for LifeBoard {
         if self.invalid_coords(i, j){
             return LifeCellState::Dead;
         }
-        if self.cells[i as usize + j as usize * self.width] == 0 {
-            LifeCellState::Dead
-        } else {
-            LifeCellState::Alive
-        }
+         
+        return self.cells[i as usize + j as usize * self.width].clone()
     }
 
     ///
     /// Advance the game forward one step
     /// 
     fn step(&mut self){
-        for i in 0..self.width as i32{
-            for j in 0..self.height as i32 {
+        let mut new_cells: Vec<LifeCellState> = Vec::with_capacity(self.cells.len());
+        for j in 0..self.height as i32 {
+            for i in 0..self.width as i32{
                 match (self.get_cell(i,j), self.count_neighbours(i, j)){
                     (LifeCellState::Alive, 2) 
                     | (LifeCellState::Alive, 3)  
-                    | (LifeCellState::Dead, 3) => self.set_cell(i, j, LifeCellState::Alive),
-                    _ => self.set_cell(i, j, LifeCellState::Dead)
+                    | (LifeCellState::Dead, 3) => new_cells.push(LifeCellState::Alive),
+                    _ => new_cells.push(LifeCellState::Dead)
                 }
             }
         }
+        self.cells = new_cells;
     }
 
 }
@@ -125,7 +111,15 @@ mod tests {
 
     #[test]
     fn test_count_neighbours(){
-        let game =  LifeBoard::from_array(&[1,1,1,1,1,1,1,1,1], 3).unwrap();
+        let game =  LifeBoard::from_array(&[LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive,
+                                            LifeCellState::Alive], 3).unwrap();
         
         assert_eq!(3, game.count_neighbours(0, 0));
         assert_eq!(5, game.count_neighbours(1, 0));
